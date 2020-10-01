@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		C49212AB68EED5FD136AE941 /* libPods-Flickr.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 63D2F7CC0CD168F3820E102B /* libPods-Flickr.a */; };
 		FA256506242E85B500075515 /* 49701049767_780711436e_n.jpg in Resources */ = {isa = PBXBuildFile; fileRef = FA256505242E85B500075515 /* 49701049767_780711436e_n.jpg */; };
+		FA2565082430D74700075515 /* ErrorMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA2565072430D74700075515 /* ErrorMessage.swift */; };
+		FA25650A24327B1400075515 /* LoadingCellTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA25650924327B1400075515 /* LoadingCellTableViewCell.swift */; };
+		FA25650C2435131500075515 /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA25650B2435131500075515 /* UserModel.swift */; };
+		FA25650E24391E8B00075515 /* Double+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA25650D24391E8B00075515 /* Double+Ext.swift */; };
 		FAAE7D80240C011F006F0472 /* CollectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAE7D7F240C011F006F0472 /* CollectionVC.swift */; };
 		FAAE7D83240C0370006F0472 /* PhotoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAE7D81240C0370006F0472 /* PhotoCell.swift */; };
 		FAAE7D84240C0370006F0472 /* PhotoCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = FAAE7D82240C0370006F0472 /* PhotoCell.xib */; };
@@ -35,6 +39,10 @@
 		63D2F7CC0CD168F3820E102B /* libPods-Flickr.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Flickr.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		67EA5D438855218DD7A851AD /* Pods-Flickr.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Flickr.debug.xcconfig"; path = "Target Support Files/Pods-Flickr/Pods-Flickr.debug.xcconfig"; sourceTree = "<group>"; };
 		FA256505242E85B500075515 /* 49701049767_780711436e_n.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = 49701049767_780711436e_n.jpg; path = Images/49701049767_780711436e_n.jpg; sourceTree = SOURCE_ROOT; };
+		FA2565072430D74700075515 /* ErrorMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorMessage.swift; sourceTree = "<group>"; };
+		FA25650924327B1400075515 /* LoadingCellTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingCellTableViewCell.swift; sourceTree = "<group>"; };
+		FA25650B2435131500075515 /* UserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
+		FA25650D24391E8B00075515 /* Double+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Double+Ext.swift"; sourceTree = "<group>"; };
 		FAAE7D7F240C011F006F0472 /* CollectionVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionVC.swift; sourceTree = "<group>"; };
 		FAAE7D81240C0370006F0472 /* PhotoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoCell.swift; sourceTree = "<group>"; };
 		FAAE7D82240C0370006F0472 /* PhotoCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PhotoCell.xib; sourceTree = "<group>"; };
@@ -107,6 +115,7 @@
 			isa = PBXGroup;
 			children = (
 				FAAE7D8C240EE6F6006F0472 /* ViewController+Ext.swift */,
+				FA25650D24391E8B00075515 /* Double+Ext.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -181,6 +190,7 @@
 			isa = PBXGroup;
 			children = (
 				FAB545312403FC61003516EA /* Const.swift */,
+				FA2565072430D74700075515 /* ErrorMessage.swift */,
 			);
 			path = Constants;
 			sourceTree = "<group>";
@@ -198,6 +208,7 @@
 			isa = PBXGroup;
 			children = (
 				FAB5453924040A12003516EA /* PhotoModel.swift */,
+				FA25650B2435131500075515 /* UserModel.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -217,6 +228,7 @@
 				FAB5454124041A46003516EA /* TapePhotoCell.xib */,
 				FAAE7D81240C0370006F0472 /* PhotoCell.swift */,
 				FAAE7D82240C0370006F0472 /* PhotoCell.xib */,
+				FA25650924327B1400075515 /* LoadingCellTableViewCell.swift */,
 			);
 			path = Cells;
 			sourceTree = "<group>";
@@ -328,11 +340,15 @@
 				FAAE7D89240C1F4A006F0472 /* DetailPhotoVC.swift in Sources */,
 				FAAE7D83240C0370006F0472 /* PhotoCell.swift in Sources */,
 				FAB5451724030757003516EA /* AppDelegate.swift in Sources */,
+				FA2565082430D74700075515 /* ErrorMessage.swift in Sources */,
+				FA25650C2435131500075515 /* UserModel.swift in Sources */,
 				FAB5454224041A46003516EA /* TapePhotoCell.swift in Sources */,
 				FAAE7D8D240EE6F6006F0472 /* ViewController+Ext.swift in Sources */,
+				FA25650A24327B1400075515 /* LoadingCellTableViewCell.swift in Sources */,
 				FAB5453A24040A12003516EA /* PhotoModel.swift in Sources */,
 				FAB545372403FE3F003516EA /* APIWrapper.swift in Sources */,
 				FAAE7D93241187D1006F0472 /* BaseVC.swift in Sources */,
+				FA25650E24391E8B00075515 /* Double+Ext.swift in Sources */,
 				FAB5451924030757003516EA /* SceneDelegate.swift in Sources */,
 				FAAE7D90241183B9006F0472 /* FlickrLoader.swift in Sources */,
 			);
@@ -482,6 +498,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 986NFG9Y4U;
 				INFOPLIST_FILE = Flickr/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -501,6 +518,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 986NFG9Y4U;
 				INFOPLIST_FILE = Flickr/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

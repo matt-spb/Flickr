@@ -14,19 +14,15 @@ class BaseVC: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        //setupActivityIndicatior()
     }
     
     
     func setupActivityIndicatior() {
-        loaderView = FlickrLoader(frame: CGRect(x: 0, y: 0, width: 60, height: 50))
+        loaderView = FlickrLoader(frame: CGRect(x: 0, y: 0, width: 40, height: 50))
         loaderView?.center = view.center
         loaderView?.hideIfStopAnimate = true
         guard  let loaderView = loaderView else { return }
         view.addSubview(loaderView)
         view.bringSubviewToFront(loaderView)
-        
     }
-
-
 }

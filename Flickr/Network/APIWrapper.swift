@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import SwiftyJSON
 
 class APIWrapper {
     
@@ -32,7 +33,7 @@ class APIWrapper {
     }
     
     
-    class func getUserInfo(id: String, success: @escaping (_ json: Any) -> Void, failure: @escaping (_ error: String?) -> Void) {
+    class func getUserNsid(for id: String, completion: @escaping (Result<String, ErrorMessage>) -> Void) {
         let url = Const.API_const.baseURL
         let params: [String: AnyHashable] = [
             "method":   "flickr.people.getInfo",
@@ -45,14 +46,50 @@ class APIWrapper {
         let request: URLRequest = APIConf.createRequest(withURL: url, andParams: params)
         //print(request)
         
-        
-        let dataTask = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            APIConf.generalComplitionHandler(withData: data, withError: error, success: success, failure: failure)
+        let dataTask = URLSession.shared.dataTask(with: request) { (data, _, error) in
+            if let _ = error {
+                DispatchQueue.main.async {
+                    completion(.failure(.unableToComplete))
+                }
+                return
+            }
+            guard let data = data else {
+                completion(.failure(.invalidData))
+                return
+            }
+            
+            do {
+                let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers)
+                let jsonData = JSON(json)
+                let nsid = jsonData["person"]["nsid"].stringValue
+                
+                DispatchQueue.main.async {
+                    completion(.success(nsid))
+                }
+            } catch {
+                completion(.failure(.invalidData))
+                return
+            }
         }
         
         dataTask.resume()
     }
+
+    
+    class func getUserPic(iconFarm: String, iconServer: Int, nsid: String, success: @escaping (_ json: Any) -> Void, failure: @escaping (_ error: String?) -> Void) {
+        let iconServer = String(iconServer)
+        let address = "http://farm\(iconFarm).staticflickr.com/\(iconServer)/buddyicons/\(nsid).jpg"
+        var request = URLRequest(url: URL(string: address)!)
+        request.httpMethod = "GET"
+        
+        let dataTask = URLSession.shared.dataTask(with: request) { data, response, error in
+            APIConf.generalComplitionHandler(withData: data, withError: error, success: success, failure: failure)
+        }
+        dataTask.resume()
+    }
 }
+
+
 
 //напрашивается в начальном запросе получить гео(потому что его нет в гет инфо фотос) и ай ди. И для каждой фотки уже дернуть гет инфо, распарсить в модель данных и по ай ди получить урл для загрузки картинки
 

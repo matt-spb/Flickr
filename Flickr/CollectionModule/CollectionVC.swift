@@ -12,12 +12,11 @@ import SwiftyJSON
 // надо как то сделать красиво, чтобы во время пул ту  рефреш поялвялся только верхний активити индикатор
 // в общем нужно положить индикатор в хедер и футер таблицы и убрать с центра экрана
 
-//сделать детайл вью контроллер в виде скрол вью. Есть особенности верстки
-
 class CollectionVC: BaseVC {
     
     var dataSource = [PhotoModel]()
     var page = 1
+    var shouldShowLoadingCell = false
     var hasMorePhotos = true
     
     let refreshControl: UIRefreshControl = {
@@ -34,13 +33,12 @@ class CollectionVC: BaseVC {
         configureCollectionView()
         loadPhotos()
         setupActivityIndicatior()
+        loaderView?.startAnimation()
     }
     
     @objc private func refresh(sender: UIRefreshControl) {
-        dataSource = []  //кажется это хуевая идея
-        hasMorePhotos = true
         page = 1
-        loadPhotos()
+        loadPhotos(refresh: true)
         sender.endRefreshing() //дернуть когда придут данные
     }
     
@@ -71,10 +69,10 @@ extension CollectionVC: UICollectionViewDelegate, UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        
-//        let vc = DetailPhotoVC()
-//        vc.model = dataSource[indexPath.row]
-//        self.navigationController?.pushViewController(vc, animated: true)
+        let photoModel = dataSource[indexPath.row]
+        guard let destVC = UIStoryboard.init(name: "Main", bundle: nil).instantiateViewController(identifier: "DetailVC") as? DetailPhotoVC else { return }
+        destVC.photoModel = photoModel
+        navigationController?.pushViewController(destVC, animated: true)
     }
     
     
@@ -86,9 +84,19 @@ extension CollectionVC: UICollectionViewDelegate, UICollectionViewDataSource {
         if offsetY > contentHeight - height {
             guard hasMorePhotos else { return }
             // здесь добавить нижний пул ту рефреш
-            //page += 1
-            //loadPhotos()
+            fetchNextPage()
         }
+    }
+    
+    private func fetchNextPage() {
+        page += 1
+        loadPhotos()
+    }
+    
+    
+    private func isLoadingIndexPath(_ indexPath: IndexPath) -> Bool {
+        guard shouldShowLoadingCell else { return false }
+        return indexPath.row == self.dataSource.count
     }
 }
 
@@ -99,9 +107,12 @@ extension CollectionVC: UICollectionViewDelegateFlowLayout {
     }
 }
 
+// MARK: - Networking
+
 extension CollectionVC {
     
-    func loadPhotos() {
+    func loadPhotos(refresh: Bool = false) {
+        print("Fetching page \(page), refresh: \(refresh)")
         loaderView?.startAnimation()
         
         APIWrapper.getFullInfoPhoto(page: page, per_page: Const.Screen.collection.per_page, success: { [weak self] response in
@@ -110,21 +121,32 @@ extension CollectionVC {
             
             let json = JSON(response)
             let photosArray = json["photos"]["photo"].arrayValue
-            var photos: [PhotoModel] = []
-            
-            for jsonPhoto in photosArray {
-                let photo = PhotoModel(json: jsonPhoto)
-                photos.append(photo)
+
+            if refresh {
+                self.dataSource = []
+                for jsonPhoto in photosArray {
+                    let photo = PhotoModel(json: jsonPhoto)
+                    let user = User(with: jsonPhoto)
+                    self.configureUser(user: user)
+                    photo.user = user
+                    self.dataSource.append(photo)
+                }
+                print("count = \(self.dataSource.count)")
+            } else {
+                for jsonPhoto in photosArray {
+                    let photo = PhotoModel(json: jsonPhoto)
+                    if !self.dataSource.contains(photo) {
+                        let user = User(with: jsonPhoto)
+                        self.configureUser(user: user)
+                        photo.user = user
+                        self.dataSource.append(photo)
+                    }
+                }
+                print("count = \(self.dataSource.count)")
             }
-            
-            self.dataSource.append(contentsOf: photos)
-                        
-            let currentPage = json["photos"]["page"].intValue
+                                    
             let pages = json["photos"]["pages"].intValue
-            
-            if currentPage == pages {
-                self.hasMorePhotos = false
-            }
+            self.shouldShowLoadingCell = self.page < pages
             
             DispatchQueue.main.async {
                 self.loaderView?.stopAnimation()
@@ -134,6 +156,23 @@ extension CollectionVC {
         }) { (error) in
             print("error")
         }
-    }    
+    }
+    
+    private func configureUser(user: User) {
+        guard user.iconServer > 0 else { return }
+        APIWrapper.getUserNsid(for: user.id) { result in
+            switch result {
+                case .success(let nsid):
+                    DispatchQueue.main.async {
+                        let userPicUrl = "http://farm\(user.iconFarm).staticflickr.com/\(user.iconServer)/buddyicons/\(nsid).jpg"
+                        user.nsid = nsid
+                        user.userPicUrl = userPicUrl
+                }
+                
+                case .failure(let error):
+                    print(error.rawValue)
+            }
+        }
+    }
 }
 

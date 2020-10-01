@@ -22,9 +22,11 @@ class FlickrLoader: UIView {
         setupViews()
     }
     
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
     
     fileprivate func setupViews() {
         backgroundColor = UIColor.clear
@@ -82,6 +84,7 @@ extension FlickrLoader {
     }
 }
 
+
 extension FlickrLoader {
     enum Layout {
         static let viewWidth: CGFloat = 20
@@ -95,8 +98,3 @@ extension FlickrLoader {
         static let red = #colorLiteral(red: 0.8078431487, green: 0.02745098062, blue: 0.3333333433, alpha: 1)
     }
 }
-
-
-//extension TimeInterval {
-//    var flickrAnomationDuration = 1.0
-//}

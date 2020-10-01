@@ -22,8 +22,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         UITabBar.appearance().barTintColor = .black
         UITabBar.appearance().tintColor = .systemRed
         
-        UINavigationBar.appearance().backgroundColor = .black
-        UINavigationBar.appearance().tintColor = .systemRed
+        //UINavigationBar.appearance().backgroundColor = .black
+        //UINavigationBar.appearance().tintColor = .systemRed
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

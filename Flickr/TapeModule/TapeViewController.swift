@@ -9,12 +9,16 @@
 import UIKit
 import SwiftyJSON
 
+// посмотреть в курсе шона как он сделал навбар
 
 class TapeViewController: BaseVC {
+    
+    @IBOutlet weak var tableView: UITableView!
         
     var dataSource: [PhotoModel] = []
     var page = 1
-    var hasMorePhotos = true
+    var shouldShowLoadingCell = false
+    var cellID: String = "tapePhotoCell"
     
     let refreshControl: UIRefreshControl = {
         let refControl = UIRefreshControl()
@@ -22,13 +26,9 @@ class TapeViewController: BaseVC {
         return refControl
     }()
 
-    @IBOutlet weak var tableView: UITableView!
-    
-    var cellID: String = "tapePhotoCell"
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        //navigationController?.navigationBar.isHidden = true
         tableView.refreshControl = refreshControl
         registerNibs()
         loadPhotos()
@@ -36,51 +36,58 @@ class TapeViewController: BaseVC {
         loaderView?.startAnimation()
     }
     
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        navigationController?.navigationBar.backgroundColor = .black
         navigationController?.navigationBar.isHidden = true
     }
     
     
     @objc private func refresh(sender: UIRefreshControl) {
-        dataSource = []
         page = 1
-        loadPhotos()
+        loadPhotos(refresh: true)
         sender.endRefreshing() //дернуть когда придут данные
     }
 }
 
 
 extension TapeViewController: UITableViewDelegate, UITableViewDataSource {
+    
+    // MARK: - UITableViewDataSource
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return dataSource.count
+        let count = dataSource.count
+        return shouldShowLoadingCell ? count + 1 : count
     }
+    
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "tapePhotoCell", for: indexPath) as! TapePhotoCell
-        let photoModel = dataSource[indexPath.row]
-        cell.configure(with: photoModel)
-        cell.contentView.backgroundColor = .black
-        return cell
-    }
-    
-    
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        let imageHeight = dataSource[indexPath.row].height
-        let imageWidth = dataSource[indexPath.row].width
-        let ratio = CGFloat(imageWidth / imageHeight)
-        return view.frame.width / ratio
-
-    }
-
-    
-    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        
-        if indexPath.row == dataSource.count - 1 && hasMorePhotos {
-            page += 1
-            loadPhotos()
+        if isLoadingIndexPath(indexPath) {
+            return LoadingCell(style: .default, reuseIdentifier: "loading")
+        } else {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "tapePhotoCell", for: indexPath) as! TapePhotoCell
+            let photoModel = dataSource[indexPath.row]
+            cell.configure(with: photoModel)
+            cell.contentView.backgroundColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
+            return cell
         }
     }
+
+    
+    // MARK: - UITableViewDelegate
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        if isLoadingIndexPath(indexPath) {
+            return 56
+        } else {
+            let imageHeight = dataSource[indexPath.row].height
+            let imageWidth = dataSource[indexPath.row].width
+            let ratio = CGFloat(imageWidth / imageHeight)
+            return view.frame.width / ratio + 90
+        }
+    }
+
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let photoModel = dataSource[indexPath.row]
@@ -88,48 +95,96 @@ extension TapeViewController: UITableViewDelegate, UITableViewDataSource {
         destVC.photoModel = photoModel
         navigationController?.pushViewController(destVC, animated: true)
     }
+    
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        guard isLoadingIndexPath(indexPath) else { return }
+        fetchNextPage()
+    }
+    
+    
+    private func fetchNextPage() {
+        page += 1
+        loadPhotos()
+    }
+    
+    
+    private func isLoadingIndexPath(_ indexPath: IndexPath) -> Bool {
+        guard shouldShowLoadingCell else { return false }
+        return indexPath.row == self.dataSource.count
+    }
 }
 
 
+// MARK: - Networking
+
 extension TapeViewController {
     
-    func loadPhotos() {
-        //showLoadingView()
+    private func loadPhotos(refresh: Bool = false) {
+        print("Fetching page \(page), refresh: \(refresh)")
         loaderView?.startAnimation()
         
         APIWrapper.getFullInfoPhoto(page: page, per_page: Const.Screen.tape.per_page, success: { [weak self] (response) in
             
             guard let self = self else { return }
-            print("response: \(response)")
+            //print("response: \(response)")
             
             let json = JSON(response)
             
             let photosArray = json["photos"]["photo"].arrayValue
-            var photos: [PhotoModel] = []
-            
-            for jsonPhoto in photosArray {
-                
-                let photo = PhotoModel(json: jsonPhoto)
-                photos.append(photo)
+            if refresh {
+                self.dataSource = []
+                for jsonPhoto in photosArray {
+                    let photo = PhotoModel(json: jsonPhoto)
+                    let user = User(with: jsonPhoto)
+                    self.configureUser(user: user)
+                    photo.user = user
+                    self.dataSource.append(photo)
+                }
+                print("count = \(self.dataSource.count)")
+            } else {
+                for jsonPhoto in photosArray {
+                    let photo = PhotoModel(json: jsonPhoto)
+                    if !self.dataSource.contains(photo) {
+                        let user = User(with: jsonPhoto)
+                        self.configureUser(user: user)
+                        photo.user = user
+                        self.dataSource.append(photo)
+                    }
+                }
+                print("count = \(self.dataSource.count)")
             }
-                        
-            let currentPage = json["photos"]["page"].intValue
+           
             let pages = json["photos"]["pages"].intValue
-
-            if currentPage == pages {
-                self.hasMorePhotos = false
-            }
-            self.dataSource.append(contentsOf: photos)
-            
+            self.shouldShowLoadingCell = self.page < pages
+                        
             DispatchQueue.main.async {
                 self.loaderView?.stopAnimation()
                 self.tableView.reloadData()
-                
             }
         }) { error in
             print(error ?? "")
         }
     }
+    
+    
+    private func configureUser(user: User) {
+        guard user.iconServer > 0 else { return }
+        APIWrapper.getUserNsid(for: user.id) { result in
+            switch result {
+                case .success(let nsid):
+                    DispatchQueue.main.async {
+                        let userPicUrl = "http://farm\(user.iconFarm).staticflickr.com/\(user.iconServer)/buddyicons/\(nsid).jpg"
+                        user.nsid = nsid
+                        user.userPicUrl = userPicUrl
+                    }
+
+                case .failure(let error):
+                    print(error.rawValue)
+            }
+        }
+    }
+    
     
     fileprivate func registerNibs() {
         let nib = UINib(nibName: "TapePhotoCell", bundle: nil)

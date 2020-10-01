@@ -20,73 +20,99 @@ class DetailPhotoVC: UIViewController {
     @IBOutlet weak var dateLabel: UILabel!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var scrollView: UIScrollView!
+    @IBOutlet weak var innerScrollView: UIScrollView!
+    @IBOutlet weak var containerView: UIView!
+    
     @IBOutlet weak var heightConstraint: NSLayoutConstraint!
+    @IBOutlet weak var imageViewBottomConstraint: NSLayoutConstraint!
+    @IBOutlet weak var imageViewLeadingConstraint: NSLayoutConstraint!
+    @IBOutlet weak var imageViewTopConstraint: NSLayoutConstraint!
+    @IBOutlet weak var imageViewTrailingConstraint: NSLayoutConstraint!
     
     var photoModel: PhotoModel!
-    
-    
+ 
     override func viewDidLoad() {
         super.viewDidLoad()
         configureVC()
+        configureUserPic()
         setImage()
-        scrollView.delegate = self
-        setZoomScale(scrollView.bounds.size)
-        navigationController?.navigationBar.isHidden = false
-
-        print("url: \(photoModel.url), views: \(photoModel.views), title: \(photoModel.title ?? "no title"), latitude: \(photoModel.latitude), longitude: \(photoModel.longitude), dateUpload: \(photoModel.dateUpload)")
-        
+        //scrollView.delegate = self
+        innerScrollView.delegate = self
     }
+    
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        updateConstraintsForSize(containerView.bounds.size)
+        updateMinZoomScaleForSize(containerView.bounds.size)
+    }
+    
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.navigationBar.backgroundColor = .black
+        navigationController?.navigationBar.isHidden = false
+    }
+    
     
     fileprivate func configureVC() {
-        view.backgroundColor = .systemBackground
-        getUserInfo()
-            
-        titleLabel.text = photoModel.title
-        dateLabel.text = photoModel.dateUpload
-        viewsLabel.text = "\(photoModel.views) views"
+        titleLabel.text     = photoModel.title
+        dateLabel.text      = photoModel.dateUpload.convertToDateString()
+        self.nameLabel.text = photoModel.user?.ownerName
         
-        userPic.layer.cornerRadius = userPic.frame.height / 2
-        
+        if photoModel.views > 1000 {
+            viewsLabel.text = String(format: "%.1fK views" , photoModel.views / 1000)
+        } else {
+            viewsLabel.text = String(format: "%.0f views" , photoModel.views)
+        }
     }
     
+    
+    private func configureUserPic() {
+        userPic.layer.cornerRadius = userPic.bounds.height / 2
+        guard let userPicStr = photoModel.user?.userPicUrl else { return }
+        guard let userPicUrl = URL(string: userPicStr) else { return }
+        userPic.sd_setImage(with: userPicUrl)
+    }
+    
+    
     func setImage() {
-        guard let imgURL = URL(string: photoModel.url) else { return }
+        guard let imgURL = URL(string: photoModel.url_c) else { return }
         photoImage.contentMode = .scaleAspectFit
         photoImage.sd_setImage(with: imgURL)
         
         let imageHeight = photoModel.height
         let imageWidth = photoModel.width
         let imageAspectRatio = CGFloat(imageWidth / imageHeight)
-        
         heightConstraint.constant = view.frame.width / imageAspectRatio
+        
         view.layoutIfNeeded()
     }
-    
-    func setZoomScale(_ scrollViewSize: CGSize) {
+}
+
+
+extension DetailPhotoVC {
+    func updateMinZoomScaleForSize(_ size: CGSize) {
         let imageSize = photoImage.bounds.size
-        let widthScale = scrollViewSize.width / imageSize.width
-        let heightScale = scrollViewSize.height / imageSize.height
+        let widthScale = size.width / imageSize.width
+        let heightScale = size.height / imageSize.height
         let minScale = min(widthScale, heightScale)
         
-        scrollView.minimumZoomScale = minScale
-        scrollView.maximumZoomScale = 1.5
-        scrollView.zoomScale = minScale
+        innerScrollView.minimumZoomScale = minScale
+        innerScrollView.maximumZoomScale = 1.5
+        innerScrollView.zoomScale = minScale
     }
     
-    func getUserInfo() {
-        APIWrapper.getUserInfo(id: photoModel.userID, success: { response in
-            print("response: \(response)")
-            
-            let userInfo = JSON(response)
-            
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.nameLabel.text = userInfo["person"]["realname"]["_content"].stringValue
-            }
-            
-        }) { error in
-            print(error ?? "")
-        }
+    func updateConstraintsForSize(_ size: CGSize) {
+        let yOffset = max(0, (size.height - photoImage.frame.height) / 2)
+        imageViewTopConstraint.constant = yOffset
+        imageViewBottomConstraint.constant = yOffset
+        
+        let xOffset = max(0, (size.width - photoImage.frame.width) / 2)
+        imageViewLeadingConstraint.constant = xOffset
+        imageViewTrailingConstraint.constant = xOffset
+        
+        view.layoutIfNeeded()
     }
 }
 
@@ -95,17 +121,8 @@ extension DetailPhotoVC: UIScrollViewDelegate {
     func viewForZooming(in scrollView: UIScrollView) -> UIView? {
         return photoImage
     }
+    
+    func scrollViewDidZoom(_ scrollView: UIScrollView) {
+        updateConstraintsForSize(containerView.bounds.size)
+    }
 }
-
-/*
- let title: String?
- let width: Double
- let height: Double
- let url: String
- let iconServer: Int
- let userID: String
- let latitude: Int
- let longitude: Int
- let dateUpload: String
- let views: Int
- */
