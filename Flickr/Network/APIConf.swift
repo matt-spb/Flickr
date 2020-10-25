@@ -8,9 +8,9 @@
 
 import Foundation
 
-class APIConf {
+struct APIConf {
     
-    class func createRequest(withURL url: String, andParams params: [String: AnyHashable]) -> URLRequest {
+    static func createRequest(withURL url: String, andParams params: [String: AnyHashable]) -> URLRequest {
         
         var url = url + "?"
         
@@ -24,28 +24,5 @@ class APIConf {
         request.httpMethod = "GET"  //метод запроса
         
         return request
-    }
-    
-    
-    class func generalComplitionHandler(withData data: Data?,
-                                        withError requestError: Error?,
-                                        success: (_ json: Any) -> Void,
-                                        failure: (_ errorDescription: String) -> Void) {
-        if let error = requestError {
-            failure(error.localizedDescription)
-        }
-        
-        guard let data = data else {
-            failure("Data is nil")
-        return
-    }
-        
-        do {
-            let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers)
-            success(json)
-        } catch {
-            failure("Ошибка сериализации")
-            return
-        }
     }
 }

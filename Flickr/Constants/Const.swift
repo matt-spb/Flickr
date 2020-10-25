@@ -11,10 +11,8 @@ import Foundation
 struct Const {
     
     struct API_const {
-        //static let token = "aa0d8bc526d857a0ec0f10bab4ab3c83"
         static let token = "6c2f46d3c0edd903dd8b0ff333c94548"
-        //static let token = "1e6631b7f664d026a8f5bf049d45bc3f"
-        static let baseURL = "https://api.flickr.com/services/rest/"
+        static let baseURL = "https://flickr.com/services/rest/"
     }
     
     enum Screen {
@@ -24,7 +22,7 @@ struct Const {
         var per_page: Int {
             switch self {
             case .tape:
-                return 10
+                return 5
             case .collection:
                 return 50
             }

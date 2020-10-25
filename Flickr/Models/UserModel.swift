@@ -7,33 +7,47 @@
 //
 
 import Foundation
-import SwiftyJSON
 
-class User {
-    
+struct UserCodable: Codable {
+    let person: Person
+}
+
+struct Person: Codable {
     let id: String
-    let ownerName: String
-    let iconServer: Int
-    let iconFarm: String
-    var nsid: String?
-    var userPicUrl: String?
+    let nsid: String
+    let iconserver: String
+    let iconfarm: Int
+//    let userPicUrl: String?
     
-    
-    init(id: String, ownerName: String, iconServer: Int, iconFarm: String) {
-        self.id = id
-        self.ownerName = ownerName
-        self.iconServer = iconServer
-        self.iconFarm = iconFarm
-    }
-    
-    
-    convenience init(with json: JSON) {
-        let id          = json["owner"].stringValue
-        let ownerName   = json["ownername"].stringValue
-        let iconServer  = json["iconserver"].intValue
-        let iconFarm    = json["iconfarm"].stringValue
-        
-        self.init(id: id, ownerName: ownerName, iconServer: iconServer, iconFarm: iconFarm)
+    var iconServer: Int {
+        guard let iconServer = Int(iconserver) else { return 0 }
+        return iconServer
     }
 }
 
+/*
+let json = ["person": ["id": "80036114@N08",
+                       "nsid": "80036114@N08",
+                       "ispro": 1,
+                       "can_buy_pro": 0,
+                       "iconserver": "8669",
+                       "iconfarm": 9,
+                       "path_alias": "normanwest4tography",
+                       "has_stats":"1",
+                       "pro_badge": "standard",
+                       "expire":"0",
+                       "username": ["_content": "normanwest4tography"],
+                       "realname": ["_content" : "Norman West"],
+                       "location": ["_content":"South Wales, UK."],
+                       "timezone": ["label": "GMT: Dublin, Edinburgh, Lisbon, London",
+                                    "offset": "+00:00",
+                                    "timezone_id": "EuropeLondon"],
+                       "description": ["_content": "Hello and welcome to my Flickr site. I am a keen amateur with a passion for photographing all aspects of wildlife and landscapes. Based in South Wales, the majority of wildlife photographs are from the local area./nNow retired, visits further afield are planned and as such this website is a work in progress."],
+                       "photosurl": ["_content": "https:www.flickr.com/photos_normanwest4tography"],
+                       "profileurl" : ["_content": "https:www.flickr.com/people/normanwest4tography"],
+                       "mobileurl": ["_content": "https:m.flickr.com/photostream.gne?id=79943301"],
+                       "photos": ["firstdatetaken": ["_content": "2000-01-01 00:00:46"],
+                                  "firstdate": ["_content":"1338990226"],
+                                  "count": ["_content": 2818]]],
+            "stat": "ok"] as [String : Any]
+*/

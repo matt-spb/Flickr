@@ -7,18 +7,17 @@
 //
 
 import UIKit
-import SwiftyJSON
 
 // посмотреть в курсе шона как он сделал навбар
+// почему при первом запуске загружается 20 фотографий, даже если пер пейдж равно 5? Особенности тейбл вью?
 
 class TapeViewController: BaseVC {
     
     @IBOutlet weak var tableView: UITableView!
         
-    var dataSource: [PhotoModel] = []
+    var dataSource: [Photo] = []
     var page = 1
     var shouldShowLoadingCell = false
-    var cellID: String = "tapePhotoCell"
     
     let refreshControl: UIRefreshControl = {
         let refControl = UIRefreshControl()
@@ -67,8 +66,8 @@ extension TapeViewController: UITableViewDelegate, UITableViewDataSource {
             return LoadingCell(style: .default, reuseIdentifier: "loading")
         } else {
             let cell = tableView.dequeueReusableCell(withIdentifier: "tapePhotoCell", for: indexPath) as! TapePhotoCell
-            let photoModel = dataSource[indexPath.row]
-            cell.configure(with: photoModel)
+            let photo = dataSource[indexPath.row]
+            cell.configure(with: photo)
             cell.contentView.backgroundColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
             return cell
         }
@@ -124,71 +123,73 @@ extension TapeViewController {
         print("Fetching page \(page), refresh: \(refresh)")
         loaderView?.startAnimation()
         
-        APIWrapper.getFullInfoPhoto(page: page, per_page: Const.Screen.tape.per_page, success: { [weak self] (response) in
+        APIWrapper.getFullInfoPhoto(page: page, per_page: Const.Screen.tape.per_page) { [weak self] result in
             
             guard let self = self else { return }
-            //print("response: \(response)")
             
-            let json = JSON(response)
-            
-            let photosArray = json["photos"]["photo"].arrayValue
-            if refresh {
-                self.dataSource = []
-                for jsonPhoto in photosArray {
-                    let photo = PhotoModel(json: jsonPhoto)
-                    let user = User(with: jsonPhoto)
-                    self.configureUser(user: user)
-                    photo.user = user
-                    self.dataSource.append(photo)
-                }
-                print("count = \(self.dataSource.count)")
-            } else {
-                for jsonPhoto in photosArray {
-                    let photo = PhotoModel(json: jsonPhoto)
-                    if !self.dataSource.contains(photo) {
-                        let user = User(with: jsonPhoto)
-                        self.configureUser(user: user)
-                        photo.user = user
-                        self.dataSource.append(photo)
-                    }
-                }
-                print("count = \(self.dataSource.count)")
-            }
-           
-            let pages = json["photos"]["pages"].intValue
-            self.shouldShowLoadingCell = self.page < pages
-                        
-            DispatchQueue.main.async {
-                self.loaderView?.stopAnimation()
-                self.tableView.reloadData()
-            }
-        }) { error in
-            print(error ?? "")
-        }
-    }
-    
-    
-    private func configureUser(user: User) {
-        guard user.iconServer > 0 else { return }
-        APIWrapper.getUserNsid(for: user.id) { result in
             switch result {
-                case .success(let nsid):
-                    DispatchQueue.main.async {
-                        let userPicUrl = "http://farm\(user.iconFarm).staticflickr.com/\(user.iconServer)/buddyicons/\(nsid).jpg"
-                        user.nsid = nsid
-                        user.userPicUrl = userPicUrl
-                    }
+                case .success(let photos):
+                
+                refresh ? self.refreshTapeWith(photos.photo) : self.addMorePhotosWith(photos.photo)
+                self.shouldShowLoadingCell = self.page < photos.pages
 
+                DispatchQueue.main.async {
+                    self.loaderView?.stopAnimation()
+                    self.tableView.reloadData()
+                }
+                
                 case .failure(let error):
                     print(error.rawValue)
             }
         }
     }
+            
+ 
+    private func addMorePhotosWith(_ photosArray: [Photo]) {
+        for photo in photosArray {
+            if !self.dataSource.contains(photo) {
+                var photo = photo
+                let userpicUrl = self.configureUserpicURL(photo: photo)
+                photo.userPicUrl = userpicUrl
+                self.dataSource.append(photo)
+            }
+        }
+        print("count = \(self.dataSource.count)")
+    }
+    
+    
+    private func refreshTapeWith(_ photosArray: [Photo]) {
+        self.dataSource = []
+        for photo in photosArray {
+
+            var photo = photo
+            let userpicUrl = self.configureUserpicURL(photo: photo)
+            photo.userPicUrl = userpicUrl
+            self.dataSource.append(photo)
+        }
+        print("count = \(self.dataSource.count)")
+    }
+    
+
+    private func configureUserpicURL(photo: Photo) -> String {
+        guard photo.iconServer > 0 else { return "" }
+        var userPicUrl = "nema"
+        APIWrapper.getUserInfo(for: photo.owner) { result in
+            switch result {
+                case .success(let person):
+                    userPicUrl = "http://farm\(person.iconfarm).staticflickr.com/\(person.iconserver)/buddyicons/\(person.nsid).jpg"
+
+                case .failure(let error):
+                    print(error.rawValue)
+            }
+        }
+        return userPicUrl
+    }
     
     
     fileprivate func registerNibs() {
         let nib = UINib(nibName: "TapePhotoCell", bundle: nil)
-        tableView.register(nib, forCellReuseIdentifier: cellID)
+        tableView.register(nib, forCellReuseIdentifier: TapePhotoCell.cellID)
     }
 }
 

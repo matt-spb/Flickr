@@ -6,12 +6,13 @@
 //  Copyright © 2020 matt_spb_dev. All rights reserved.
 //
 
-import Foundation
-import SwiftyJSON
+// Не загружается информация о первых двух юзерах (ни фотки ни фамилии)
 
-class APIWrapper {
+import Foundation
+
+struct APIWrapper {
     
-    class func getFullInfoPhoto(page: Int, per_page: Int, success: @escaping (_ json: Any) -> Void, failure: @escaping (_ error: String?) -> Void) {
+    static func getFullInfoPhoto(page: Int, per_page: Int, completion: @escaping (Result<Photos, ErrorMessage>) -> Void) {
         let url = Const.API_const.baseURL
         let params: [String: AnyHashable] = [
             "method":   "flickr.interestingness.getList",
@@ -26,31 +27,52 @@ class APIWrapper {
         let request: URLRequest = APIConf.createRequest(withURL: url, andParams: params)
         
         let dataTask = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            APIConf.generalComplitionHandler(withData: data, withError: error, success: success, failure: failure)
+            if let _ = error {
+                completion(.failure(.unableToComplete))
+                return
+            }
+            
+            guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
+                completion(.failure(.invalidResponse))
+                return
+            }
+            
+            guard let data = data else {
+                completion(.failure(.invalidData))
+                return
+            }
+            
+            do {
+                let decoder = JSONDecoder()
+                let photoMod = try decoder.decode(PhotoMod.self, from: data)
+                
+                completion(.success(photoMod.photos))
+                
+            } catch {
+                completion(.failure(.unableToDecode))
+                return
+            }
         }
         
         dataTask.resume()
     }
     
     
-    class func getUserNsid(for id: String, completion: @escaping (Result<String, ErrorMessage>) -> Void) {
+    static func getUserInfo(for id: String, completion: @escaping (Result<Person, ErrorMessage>) -> Void) {
         let url = Const.API_const.baseURL
         let params: [String: AnyHashable] = [
-            "method":   "flickr.people.getInfo",
-            "api_key":  Const.API_const.token,
-            "format":   "json",
-            "user_id": id,
-            "nojsoncallback": 1
+            "method":           "flickr.people.getInfo",
+            "api_key":          Const.API_const.token,
+            "format":           "json",
+            "user_id":          id,
+            "nojsoncallback":   1
         ]
     
         let request: URLRequest = APIConf.createRequest(withURL: url, andParams: params)
-        //print(request)
         
         let dataTask = URLSession.shared.dataTask(with: request) { (data, _, error) in
             if let _ = error {
-                DispatchQueue.main.async {
-                    completion(.failure(.unableToComplete))
-                }
+                completion(.failure(.unableToComplete))
                 return
             }
             guard let data = data else {
@@ -59,32 +81,17 @@ class APIWrapper {
             }
             
             do {
-                let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers)
-                let jsonData = JSON(json)
-                let nsid = jsonData["person"]["nsid"].stringValue
+                let decoder = JSONDecoder()
+                let userCodable = try decoder.decode(UserCodable.self, from: data)
                 
-                DispatchQueue.main.async {
-                    completion(.success(nsid))
-                }
+                completion(.success(userCodable.person))
+
             } catch {
                 completion(.failure(.invalidData))
                 return
             }
         }
         
-        dataTask.resume()
-    }
-
-    
-    class func getUserPic(iconFarm: String, iconServer: Int, nsid: String, success: @escaping (_ json: Any) -> Void, failure: @escaping (_ error: String?) -> Void) {
-        let iconServer = String(iconServer)
-        let address = "http://farm\(iconFarm).staticflickr.com/\(iconServer)/buddyicons/\(nsid).jpg"
-        var request = URLRequest(url: URL(string: address)!)
-        request.httpMethod = "GET"
-        
-        let dataTask = URLSession.shared.dataTask(with: request) { data, response, error in
-            APIConf.generalComplitionHandler(withData: data, withError: error, success: success, failure: failure)
-        }
         dataTask.resume()
     }
 }
@@ -95,7 +102,7 @@ class APIWrapper {
 
 //хотя не, для некторых фоток приходит полное инфо, кроме локейшн. Локейшн сделать в виде кнопки с названием из инфо, а по нажатию сделать открытие maps и передать туда координаты широты и долготы
 
-//а вообще то можно и ленту пиздатую запилить как в приложении. для этого нужно сделать верстку ячейки и передавать туда нужные данные
+//а вообще то можно и ленту запилить как в приложении. для этого нужно сделать верстку ячейки и передавать туда нужные данные
 
 //если iconserver > 0, то можно получить userpic Buddyicons, nsid можно получить из гет инфо. в гетлист эта строка не приходит, если 0, то сделать дефолтный юзерпик
 

@@ -18,6 +18,8 @@ class TapePhotoCell: UITableViewCell {
     @IBOutlet weak var dateLabel: UILabel!
     @IBOutlet weak var borderView: UIView!
     
+    static let cellID: String = "tapePhotoCell"
+    
     override func awakeFromNib() {
         super.awakeFromNib()
         photoImageView.contentMode = .scaleAspectFit
@@ -26,13 +28,11 @@ class TapePhotoCell: UITableViewCell {
     
     override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
-
     }
     
     
-    func configure(with photoModel: PhotoModel) {
-        guard let user = photoModel.user else { return }
-        configureUserInfoWith(user: user)
+    func configure(with photoModel: Photo) {
+        configureUserInfoFor(photoModel)
         
         guard let url = URL(string: photoModel.url) else {
             photoImageView.image = nil
@@ -40,26 +40,26 @@ class TapePhotoCell: UITableViewCell {
         }
         photoImageView.sd_setImage(with: url)
         
-        if photoModel.views > 1000 {
-            viewsLabel.text = String(format: "%.1fK views" , photoModel.views / 1000)
+        if photoModel.viewS > 1000 {
+            viewsLabel.text = String(format: "%.1fK views", Double(photoModel.viewS) / 1000)
         } else {
-            viewsLabel.text = "\(photoModel.views) views"
+            viewsLabel.text = "\(photoModel.viewS) views"
         }
         
         dateLabel.text = photoModel.dateUpload.convertToDateString()
+        nameLabel.text = photoModel.ownername
         
         borderView.layer.borderWidth = 0
         borderView.layer.borderColor = #colorLiteral(red: 0.2549019754, green: 0.2745098174, blue: 0.3019607961, alpha: 1)
     }
     
     
-    private func configureUserInfoWith(user: User) {
+    private func configureUserInfoFor(_ photo: Photo) {
         userPic.layer.cornerRadius = userPic.bounds.height / 2
-        guard let userPicStr = user.userPicUrl else { return }
+        guard let userPicStr = photo.userPicUrl else { return }
+//        print("userPicStr is \(userPicStr)")
         guard let userPicUrl = URL(string: userPicStr) else { return }
         userPic.sd_setImage(with: userPicUrl)
-        
-        nameLabel.text = user.ownerName
     }
 }
 

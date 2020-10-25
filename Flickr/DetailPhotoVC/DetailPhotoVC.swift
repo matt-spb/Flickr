@@ -6,8 +6,10 @@
 //  Copyright © 2020 matt_spb_dev. All rights reserved.
 //
 
+
+// при повторном нажатии фотки ДетайлВК открывается не с центрированной фоткой. Исправить
+
 import UIKit
-import SwiftyJSON
 import SDWebImage
 
 class DetailPhotoVC: UIViewController {
@@ -29,7 +31,7 @@ class DetailPhotoVC: UIViewController {
     @IBOutlet weak var imageViewTopConstraint: NSLayoutConstraint!
     @IBOutlet weak var imageViewTrailingConstraint: NSLayoutConstraint!
     
-    var photoModel: PhotoModel!
+    var photoModel: Photo!
  
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -58,19 +60,19 @@ class DetailPhotoVC: UIViewController {
     fileprivate func configureVC() {
         titleLabel.text     = photoModel.title
         dateLabel.text      = photoModel.dateUpload.convertToDateString()
-        self.nameLabel.text = photoModel.user?.ownerName
+        self.nameLabel.text = photoModel.ownername
         
-        if photoModel.views > 1000 {
-            viewsLabel.text = String(format: "%.1fK views" , photoModel.views / 1000)
+        if photoModel.viewS > 1000 {
+            viewsLabel.text = String(format: "%.1fK views" , Double(photoModel.viewS) / 1000)
         } else {
-            viewsLabel.text = String(format: "%.0f views" , photoModel.views)
+            viewsLabel.text = String(format: "%.0f views" , photoModel.viewS)
         }
     }
     
     
     private func configureUserPic() {
         userPic.layer.cornerRadius = userPic.bounds.height / 2
-        guard let userPicStr = photoModel.user?.userPicUrl else { return }
+        guard let userPicStr = photoModel.userPicUrl else { return }
         guard let userPicUrl = URL(string: userPicStr) else { return }
         userPic.sd_setImage(with: userPicUrl)
     }

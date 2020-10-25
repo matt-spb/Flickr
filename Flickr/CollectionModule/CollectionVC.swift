@@ -7,16 +7,14 @@
 //
 
 import UIKit
-import SwiftyJSON
 
 // надо как то сделать красиво, чтобы во время пул ту  рефреш поялвялся только верхний активити индикатор
 // в общем нужно положить индикатор в хедер и футер таблицы и убрать с центра экрана
 
 class CollectionVC: BaseVC {
     
-    var dataSource = [PhotoModel]()
+    var dataSource = [Photo]()
     var page = 1
-    var shouldShowLoadingCell = false
     var hasMorePhotos = true
     
     let refreshControl: UIRefreshControl = {
@@ -31,14 +29,14 @@ class CollectionVC: BaseVC {
         super.viewDidLoad()
         navigationController?.navigationBar.isHidden = true
         configureCollectionView()
-        loadPhotos()
+        //loadPhotos()
         setupActivityIndicatior()
         loaderView?.startAnimation()
     }
     
     @objc private func refresh(sender: UIRefreshControl) {
         page = 1
-        loadPhotos(refresh: true)
+        //loadPhotos(refresh: true)
         sender.endRefreshing() //дернуть когда придут данные
     }
     
@@ -61,17 +59,16 @@ extension CollectionVC: UICollectionViewDelegate, UICollectionViewDataSource {
         cell.configure(with: photo)
         
         if indexPath.row == dataSource.count - 1 && hasMorePhotos {
-            page += 1
-            loadPhotos()
+            fetchNextPage()
         }
         
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let photoModel = dataSource[indexPath.row]
+//        let photoModel = dataSource[indexPath.row]
         guard let destVC = UIStoryboard.init(name: "Main", bundle: nil).instantiateViewController(identifier: "DetailVC") as? DetailPhotoVC else { return }
-        destVC.photoModel = photoModel
+//        destVC.photoModel = photoModel
         navigationController?.pushViewController(destVC, animated: true)
     }
     
@@ -90,15 +87,10 @@ extension CollectionVC: UICollectionViewDelegate, UICollectionViewDataSource {
     
     private func fetchNextPage() {
         page += 1
-        loadPhotos()
-    }
-    
-    
-    private func isLoadingIndexPath(_ indexPath: IndexPath) -> Bool {
-        guard shouldShowLoadingCell else { return false }
-        return indexPath.row == self.dataSource.count
+        //loadPhotos()
     }
 }
+
 
 extension CollectionVC: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -110,7 +102,7 @@ extension CollectionVC: UICollectionViewDelegateFlowLayout {
 // MARK: - Networking
 
 extension CollectionVC {
-    
+    /*
     func loadPhotos(refresh: Bool = false) {
         print("Fetching page \(page), refresh: \(refresh)")
         loaderView?.startAnimation()
@@ -122,31 +114,10 @@ extension CollectionVC {
             let json = JSON(response)
             let photosArray = json["photos"]["photo"].arrayValue
 
-            if refresh {
-                self.dataSource = []
-                for jsonPhoto in photosArray {
-                    let photo = PhotoModel(json: jsonPhoto)
-                    let user = User(with: jsonPhoto)
-                    self.configureUser(user: user)
-                    photo.user = user
-                    self.dataSource.append(photo)
-                }
-                print("count = \(self.dataSource.count)")
-            } else {
-                for jsonPhoto in photosArray {
-                    let photo = PhotoModel(json: jsonPhoto)
-                    if !self.dataSource.contains(photo) {
-                        let user = User(with: jsonPhoto)
-                        self.configureUser(user: user)
-                        photo.user = user
-                        self.dataSource.append(photo)
-                    }
-                }
-                print("count = \(self.dataSource.count)")
-            }
+            refresh ? self.refreshCollectionWith(photosArray) : self.addMorePhotosWith(photosArray)
                                     
             let pages = json["photos"]["pages"].intValue
-            self.shouldShowLoadingCell = self.page < pages
+            self.hasMorePhotos = self.page < pages
             
             DispatchQueue.main.async {
                 self.loaderView?.stopAnimation()
@@ -158,21 +129,88 @@ extension CollectionVC {
         }
     }
     
-    private func configureUser(user: User) {
-        guard user.iconServer > 0 else { return }
-        APIWrapper.getUserNsid(for: user.id) { result in
-            switch result {
-                case .success(let nsid):
-                    DispatchQueue.main.async {
-                        let userPicUrl = "http://farm\(user.iconFarm).staticflickr.com/\(user.iconServer)/buddyicons/\(nsid).jpg"
-                        user.nsid = nsid
-                        user.userPicUrl = userPicUrl
-                }
-                
-                case .failure(let error):
-                    print(error.rawValue)
+    private func addMorePhotosWith(_ photosArray: [JSON]) {
+        for jsonPhoto in photosArray {
+            var photo = PhotoModel(json: jsonPhoto)
+            if !self.dataSource.contains(photo) {
+                let user = User(with: jsonPhoto)
+//                self.configureUser(user: user)
+                photo.user = user
+                self.dataSource.append(photo)
             }
         }
+        print("count = \(self.dataSource.count)")
     }
+    
+    
+    private func refreshCollectionWith(_ photosArray: [JSON]) {
+        self.dataSource = []
+        for jsonPhoto in photosArray {
+            var photo = PhotoModel(json: jsonPhoto)
+            let user = User(with: jsonPhoto)
+           // self.configureUser(user: user)
+            photo.user = user
+            self.dataSource.append(photo)
+        }
+        print("count = \(self.dataSource.count)")
+    }
+  */
+    
+//    private func configureUser(user: UserCodable) {
+//        guard user.iconServer > 0 else { return }
+//        APIWrapper.getUserInfo(for: user.id) { result in
+//            switch result {
+//                case .success(let person):
+//                    let userPicUrl = "http://farm\(person.iconfarm).staticflickr.com/\(person.iconserver)/buddyicons/\(person.nsid).jpg"
+//                    user.userPicUrl = userPicUrl
+//
+//                case .failure(let error):
+//                    print(error.rawValue)
+//            }
+//        }
+//    }
+    
+    /*
+     private func configureUser(user: User) {
+     guard user.iconServer > 0 else { return }
+     APIWrapper.getUserInfo(for: user.id) { result in
+     switch result {
+     case .success(let person):
+     let userPicUrl = "http://farm\(person.iconfarm).staticflickr.com/\(person.iconserver)/buddyicons/\(person.nsid).jpg"
+     user.userPicUrl = userPicUrl
+     
+     case .failure(let error):
+     print(error.rawValue)
+     }
+     }
+     }
+     
+     */
 }
 
+/*
+let json = ["person": ["id": "80036114@N08",
+                       "nsid": "80036114@N08",
+                       "ispro": 1,
+                       "can_buy_pro": 0,
+                       "iconserver": "8669",
+                       "iconfarm": 9,
+                       "path_alias": "normanwest4tography",
+                       "has_stats":"1",
+                       "pro_badge": "standard",
+                       "expire":"0",
+                       "username": ["_content": "normanwest4tography"],
+                       "realname": ["_content" : "Norman West"],
+                       "location": ["_content":"South Wales, UK."],
+                       "timezone": ["label": "GMT: Dublin, Edinburgh, Lisbon, London",
+                                    "offset": "+00:00",
+                                    "timezone_id": "EuropeLondon"],
+                       "description": ["_content": "Hello and welcome to my Flickr site. I am a keen amateur with a passion for photographing all aspects of wildlife and landscapes. Based in South Wales, the majority of wildlife photographs are from the local area./nNow retired, visits further afield are planned and as such this website is a work in progress."],
+                       "photosurl": ["_content": "https:www.flickr.com/photos_normanwest4tography"],
+                       "profileurl" : ["_content": "https:www.flickr.com/people/normanwest4tography"],
+                       "mobileurl": ["_content": "https:m.flickr.com/photostream.gne?id=79943301"],
+                       "photos": ["firstdatetaken": ["_content": "2000-01-01 00:00:46"],
+                                  "firstdate": ["_content":"1338990226"],
+                                  "count": ["_content": 2818]]],
+            "stat": "ok"] as [String : Any]
+*/

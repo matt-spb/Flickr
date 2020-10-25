@@ -14,7 +14,7 @@ class PhotoCell: UICollectionViewCell, NibReusable {
 
     @IBOutlet weak var cellImage: UIImageView!
     
-    static var reuseIdentifier: String { return "photoCell"}
+    static var reuseIdentifier: String { return "photoCell" }
     static var nib: UINib { return UINib(nibName: "PhotoCell", bundle: nil) }
     
     override func awakeFromNib() {
@@ -24,12 +24,11 @@ class PhotoCell: UICollectionViewCell, NibReusable {
         cellImage.backgroundColor = .black
     }
     
-    func configure(with photo: PhotoModel) {
+    func configure(with photo: Photo) {
         guard let url = URL(string: photo.url) else {
             cellImage.image = nil
             return
         }
         cellImage.sd_setImage(with: url)
     }
-
 }
