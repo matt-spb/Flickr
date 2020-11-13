@@ -83,7 +83,15 @@ extension TapeViewController: UITableViewDelegate, UITableViewDataSource {
             let imageHeight = dataSource[indexPath.row].height
             let imageWidth = dataSource[indexPath.row].width
             let ratio = CGFloat(imageWidth / imageHeight)
-            return view.frame.width / ratio + 90
+            let viewWidth = view.frame.width
+            // FIXME: Проблема ТУТ!! Делить на 0 нельзя )))
+            // У ячейки indexPath.row  == 7 ratio равно 0
+            // Но вообще, предполагаю, что ratio должно быть:
+            // let ratio = CGFloat(imageWidth)/CGFloat(imageHeight)
+            // Но я бы установила бы изначально тип CGFloat для переменных height & width в модели (dataSource[indexPath.row].height)
+
+            // это только quick fix что бы проект работал))
+            return ratio != 0 ? viewWidth / ratio + 90 : viewWidth + 90
         }
     }
 
