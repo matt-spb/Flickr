@@ -22,7 +22,7 @@ struct Const {
         var per_page: Int {
             switch self {
             case .tape:
-                return 5
+                return 20
             case .collection:
                 return 50
             }

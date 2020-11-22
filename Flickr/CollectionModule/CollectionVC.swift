@@ -29,14 +29,14 @@ class CollectionVC: BaseVC {
         super.viewDidLoad()
         navigationController?.navigationBar.isHidden = true
         configureCollectionView()
-        //loadPhotos()
+        loadPhotos()
         setupActivityIndicatior()
         loaderView?.startAnimation()
     }
     
     @objc private func refresh(sender: UIRefreshControl) {
         page = 1
-        //loadPhotos(refresh: true)
+        loadPhotos(refresh: true)
         sender.endRefreshing() //дернуть когда придут данные
     }
     
@@ -66,9 +66,9 @@ extension CollectionVC: UICollectionViewDelegate, UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-//        let photoModel = dataSource[indexPath.row]
+        let photoModel = dataSource[indexPath.row]
         guard let destVC = UIStoryboard.init(name: "Main", bundle: nil).instantiateViewController(identifier: "DetailVC") as? DetailPhotoVC else { return }
-//        destVC.photoModel = photoModel
+        destVC.photoModel = photoModel
         navigationController?.pushViewController(destVC, animated: true)
     }
     
@@ -87,7 +87,7 @@ extension CollectionVC: UICollectionViewDelegate, UICollectionViewDataSource {
     
     private func fetchNextPage() {
         page += 1
-        //loadPhotos()
+        loadPhotos()
     }
 }
 
@@ -102,90 +102,77 @@ extension CollectionVC: UICollectionViewDelegateFlowLayout {
 // MARK: - Networking
 
 extension CollectionVC {
-    /*
-    func loadPhotos(refresh: Bool = false) {
+    
+    private func loadPhotos(refresh: Bool = false) {
         print("Fetching page \(page), refresh: \(refresh)")
         loaderView?.startAnimation()
         
-        APIWrapper.getFullInfoPhoto(page: page, per_page: Const.Screen.collection.per_page, success: { [weak self] response in
+        APIWrapper.getFullInfoPhoto(page: page, per_page: Const.Screen.collection.per_page) { [weak self] result in
             
             guard let self = self else { return }
             
-            let json = JSON(response)
-            let photosArray = json["photos"]["photo"].arrayValue
-
-            refresh ? self.refreshCollectionWith(photosArray) : self.addMorePhotosWith(photosArray)
-                                    
-            let pages = json["photos"]["pages"].intValue
-            self.hasMorePhotos = self.page < pages
-            
-            DispatchQueue.main.async {
-                self.loaderView?.stopAnimation()
-                self.collectionView.reloadData()
+            switch result {
+                case .success(let photos):
+                    
+                    refresh ? self.refreshCollectionWith(photos.photo) : self.addMorePhotosWith(photos.photo)
+                    self.hasMorePhotos = self.page < photos.pages
+                    
+                    DispatchQueue.main.async {
+                        self.loaderView?.stopAnimation()
+                        self.collectionView.reloadData()
+                }
+                
+                case .failure(let error):
+                    print(error.rawValue)
             }
-   
-        }) { (error) in
-            print("error")
         }
     }
     
-    private func addMorePhotosWith(_ photosArray: [JSON]) {
-        for jsonPhoto in photosArray {
-            var photo = PhotoModel(json: jsonPhoto)
+    
+    private func addMorePhotosWith(_ photosArray: [Photo]) {
+        for photo in photosArray {
             if !self.dataSource.contains(photo) {
-                let user = User(with: jsonPhoto)
-//                self.configureUser(user: user)
+                
+                var photo = photo
+                let user = Person(with: photo)
+                self.configureUser(user: user)
                 photo.user = user
                 self.dataSource.append(photo)
             }
         }
-        print("count = \(self.dataSource.count)")
     }
+
     
-    
-    private func refreshCollectionWith(_ photosArray: [JSON]) {
+    private func refreshCollectionWith(_ photosArray: [Photo]) {
         self.dataSource = []
-        for jsonPhoto in photosArray {
-            var photo = PhotoModel(json: jsonPhoto)
-            let user = User(with: jsonPhoto)
-           // self.configureUser(user: user)
+        for photo in photosArray {
+            
+            var photo = photo
+            let user = Person(with: photo)
+            self.configureUser(user: user)
             photo.user = user
             self.dataSource.append(photo)
         }
-        print("count = \(self.dataSource.count)")
     }
-  */
+  
     
-//    private func configureUser(user: UserCodable) {
-//        guard user.iconServer > 0 else { return }
-//        APIWrapper.getUserInfo(for: user.id) { result in
-//            switch result {
-//                case .success(let person):
-//                    let userPicUrl = "http://farm\(person.iconfarm).staticflickr.com/\(person.iconserver)/buddyicons/\(person.nsid).jpg"
-//                    user.userPicUrl = userPicUrl
-//
-//                case .failure(let error):
-//                    print(error.rawValue)
-//            }
-//        }
-//    }
-    
-    /*
-     private func configureUser(user: User) {
-     guard user.iconServer > 0 else { return }
-     APIWrapper.getUserInfo(for: user.id) { result in
-     switch result {
-     case .success(let person):
-     let userPicUrl = "http://farm\(person.iconfarm).staticflickr.com/\(person.iconserver)/buddyicons/\(person.nsid).jpg"
-     user.userPicUrl = userPicUrl
-     
-     case .failure(let error):
-     print(error.rawValue)
-     }
-     }
-     }
-     
-     */
+    private func configureUser(user: Person) {
+        guard user.iconServer > 0 else { return }
+        
+        APIWrapper.getUserInfo(for: user.id) { result in
+            switch result {
+                case .success(let person):
+                    guard let nsid = person.nsid else { return }
+                    let userPicUrl = "http://farm\(person.iconfarm).staticflickr.com/\(person.iconserver)/buddyicons/\(nsid).jpg"
+                    DispatchQueue.main.async {
+                        user.userPicUrl = userPicUrl
+                }
+                
+                case .failure(let error):
+                    print(error.rawValue)
+            }
+        }
+    }
 }
 
 /*

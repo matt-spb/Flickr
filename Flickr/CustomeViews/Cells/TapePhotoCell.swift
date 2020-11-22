@@ -40,10 +40,10 @@ class TapePhotoCell: UITableViewCell {
         }
         photoImageView.sd_setImage(with: url)
         
-        if photoModel.viewS > 1000 {
-            viewsLabel.text = String(format: "%.1fK views", Double(photoModel.viewS) / 1000)
+        if photoModel.intViews > 1000 {
+            viewsLabel.text = String(format: "%.1fK views", Double(photoModel.intViews) / 1000)
         } else {
-            viewsLabel.text = "\(photoModel.viewS) views"
+            viewsLabel.text = "\(photoModel.intViews) views"
         }
         
         dateLabel.text = photoModel.dateUpload.convertToDateString()
@@ -56,7 +56,8 @@ class TapePhotoCell: UITableViewCell {
     
     private func configureUserInfoFor(_ photo: Photo) {
         userPic.layer.cornerRadius = userPic.bounds.height / 2
-        guard let userPicStr = photo.userPicUrl else { return }
+        guard let user = photo.user else { return }
+        guard let userPicStr = user.userPicUrl else { return }
 //        print("userPicStr is \(userPicStr)")
         guard let userPicUrl = URL(string: userPicStr) else { return }
         userPic.sd_setImage(with: userPicUrl)

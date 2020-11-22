@@ -12,18 +12,33 @@ struct UserCodable: Codable {
     let person: Person
 }
 
-struct Person: Codable {
+class Person: Codable {
     let id: String
-    let nsid: String
+    var nsid: String? = nil
     let iconserver: String
     let iconfarm: Int
-//    let userPicUrl: String?
+    var userPicUrl: String? = nil
     
     var iconServer: Int {
         guard let iconServer = Int(iconserver) else { return 0 }
         return iconServer
     }
+    
+    init(id: String, iconserver: String, iconfarm: Int) {
+        self.id = id
+        self.iconserver = iconserver
+        self.iconfarm = iconfarm
+    }
+    
+    convenience init(with photo: Photo) {
+        let id = photo.owner
+        let iconserver = photo.iconserver
+        let iconfarm = photo.iconfarm
+        
+        self.init(id: id, iconserver: iconserver, iconfarm: iconfarm)
+    }
 }
+
 
 /*
 let json = ["person": ["id": "80036114@N08",

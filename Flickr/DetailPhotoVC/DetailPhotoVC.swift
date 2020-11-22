@@ -8,6 +8,9 @@
 
 
 // при повторном нажатии фотки ДетайлВК открывается не с центрированной фоткой. Исправить
+// как это можно отдебажить, чтобы понять где что не срабатывает?
+
+// лоадинг вью работает криво после перехода на кодабл
 
 import UIKit
 import SDWebImage
@@ -38,7 +41,6 @@ class DetailPhotoVC: UIViewController {
         configureVC()
         configureUserPic()
         setImage()
-        //scrollView.delegate = self
         innerScrollView.delegate = self
     }
     
@@ -62,17 +64,18 @@ class DetailPhotoVC: UIViewController {
         dateLabel.text      = photoModel.dateUpload.convertToDateString()
         self.nameLabel.text = photoModel.ownername
         
-        if photoModel.viewS > 1000 {
-            viewsLabel.text = String(format: "%.1fK views" , Double(photoModel.viewS) / 1000)
+        if photoModel.intViews > 1000 {
+            viewsLabel.text = String(format: "%.1fK views" , Double(photoModel.intViews) / 1000)
         } else {
-            viewsLabel.text = String(format: "%.0f views" , photoModel.viewS)
+            viewsLabel.text = String(format: "%.0f views" , photoModel.intViews)
         }
     }
     
     
     private func configureUserPic() {
         userPic.layer.cornerRadius = userPic.bounds.height / 2
-        guard let userPicStr = photoModel.userPicUrl else { return }
+        guard let user = photoModel.user else { return }
+        guard let userPicStr = user.userPicUrl else { return }
         guard let userPicUrl = URL(string: userPicStr) else { return }
         userPic.sd_setImage(with: userPicUrl)
     }
@@ -104,6 +107,7 @@ extension DetailPhotoVC {
         innerScrollView.maximumZoomScale = 1.5
         innerScrollView.zoomScale = minScale
     }
+    
     
     func updateConstraintsForSize(_ size: CGSize) {
         let yOffset = max(0, (size.height - photoImage.frame.height) / 2)

@@ -31,8 +31,7 @@ struct Photo: Codable {
     let url_n: String
     let height_n: Int
     let width_n: Int
-//    var user: Person?
-    var userPicUrl: String?
+    var user: Person?
     
     var url: String {
         return url_n
@@ -49,7 +48,7 @@ struct Photo: Codable {
         }
     }
     
-    var viewS: Int {
+    var intViews: Int {
         guard let viewS = Int(views) else { return 0 }
         return viewS
     }
@@ -59,12 +58,12 @@ struct Photo: Codable {
         return dateUpload
     }
     
-    var height: Int {
-        return height_n
+    var height: CGFloat {
+        return CGFloat(height_n)
     }
     
-    var width: Int {
-        return width_n
+    var width: CGFloat {
+        return CGFloat(width_n)
     }
     
     var iconServer: Int {

@@ -82,7 +82,7 @@ extension TapeViewController: UITableViewDelegate, UITableViewDataSource {
         } else {
             let imageHeight = dataSource[indexPath.row].height
             let imageWidth = dataSource[indexPath.row].width
-            let ratio = CGFloat(imageWidth / imageHeight)
+            let ratio = imageWidth / imageHeight
             return view.frame.width / ratio + 90
         }
     }
@@ -148,13 +148,14 @@ extension TapeViewController {
     private func addMorePhotosWith(_ photosArray: [Photo]) {
         for photo in photosArray {
             if !self.dataSource.contains(photo) {
+                
                 var photo = photo
-                let userpicUrl = self.configureUserpicURL(photo: photo)
-                photo.userPicUrl = userpicUrl
+                let user = Person(with: photo)
+                self.configureUser(user: user)
+                photo.user = user
                 self.dataSource.append(photo)
             }
         }
-        print("count = \(self.dataSource.count)")
     }
     
     
@@ -163,29 +164,33 @@ extension TapeViewController {
         for photo in photosArray {
 
             var photo = photo
-            let userpicUrl = self.configureUserpicURL(photo: photo)
-            photo.userPicUrl = userpicUrl
+            let user = Person(with: photo)
+            self.configureUser(user: user)
+            photo.user = user
             self.dataSource.append(photo)
         }
-        print("count = \(self.dataSource.count)")
     }
     
-
-    private func configureUserpicURL(photo: Photo) -> String {
-        guard photo.iconServer > 0 else { return "" }
-        var userPicUrl = "nema"
-        APIWrapper.getUserInfo(for: photo.owner) { result in
+    
+    private func configureUser(user: Person) {
+        guard user.iconServer > 0 else { return }
+        
+        APIWrapper.getUserInfo(for: user.id) { result in
             switch result {
                 case .success(let person):
-                    userPicUrl = "http://farm\(person.iconfarm).staticflickr.com/\(person.iconserver)/buddyicons/\(person.nsid).jpg"
-
+                    guard let nsid = person.nsid else { return }
+                    let userPicUrl = "http://farm\(person.iconfarm).staticflickr.com/\(person.iconserver)/buddyicons/\(nsid).jpg"
+                    DispatchQueue.main.async {
+                        user.userPicUrl = userPicUrl
+                }
+                
                 case .failure(let error):
                     print(error.rawValue)
             }
         }
-        return userPicUrl
     }
     
+
     
     fileprivate func registerNibs() {
         let nib = UINib(nibName: "TapePhotoCell", bundle: nil)
