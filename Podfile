@@ -6,10 +6,7 @@ target 'Flickr' do
   # use_frameworks!
 
   # Pods for Flickr
-pod 'SwiftyJSON', '~> 4.0'
 pod 'SDWebImage', :modular_headers => true
 pod 'Reusable'
-
-
 
 end

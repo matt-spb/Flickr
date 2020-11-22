@@ -178,9 +178,10 @@ extension TapeViewController {
         APIWrapper.getUserInfo(for: user.id) { result in
             switch result {
                 case .success(let person):
-                    guard let nsid = person.nsid else { return }
-                    let userPicUrl = "http://farm\(person.iconfarm).staticflickr.com/\(person.iconserver)/buddyicons/\(nsid).jpg"
+                    
                     DispatchQueue.main.async {
+                        guard let nsid = person.nsid else { return }
+                        let userPicUrl = "http://farm\(person.iconfarm).staticflickr.com/\(person.iconserver)/buddyicons/\(nsid).jpg"
                         user.userPicUrl = userPicUrl
                 }
                 
