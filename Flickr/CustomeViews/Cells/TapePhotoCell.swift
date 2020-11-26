@@ -57,10 +57,14 @@ class TapePhotoCell: UITableViewCell {
     private func configureUserInfoFor(_ photo: Photo) {
         userPic.layer.cornerRadius = userPic.bounds.height / 2
         guard let user = photo.user else { return }
-        guard let userPicStr = user.userPicUrl else { return }
+        guard let userPicStr = user.userPicUrl else {
+            print("debug: URL Error")
+            return }
 //        print("userPicStr is \(userPicStr)")
         guard let userPicUrl = URL(string: userPicStr) else { return }
         userPic.sd_setImage(with: userPicUrl)
+        print("debug: user: \(photo.ownername), date: \(Date())")
+
     }
 }
 

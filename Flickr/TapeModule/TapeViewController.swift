@@ -69,6 +69,8 @@ extension TapeViewController: UITableViewDelegate, UITableViewDataSource {
             let photo = dataSource[indexPath.row]
             cell.configure(with: photo)
             cell.contentView.backgroundColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
+            print("debug: photoName \(photo.ownername), indexPath = \(indexPath.row), date = \(Date())")
+
             return cell
         }
     }
@@ -172,14 +174,14 @@ extension TapeViewController {
     }
     
     
-    private func configureUser(user: Person) {
+    private func configureUser(user: Person) { // либо комплишн хендлер либо делегат, который будет передавать картинку
         guard user.iconServer > 0 else { return }
         
         APIWrapper.getUserInfo(for: user.id) { result in
             switch result {
                 case .success(let person):
                     
-                    DispatchQueue.main.async {
+                    DispatchQueue.main.async { // излишне, убрать
                         guard let nsid = person.nsid else { return }
                         let userPicUrl = "http://farm\(person.iconfarm).staticflickr.com/\(person.iconserver)/buddyicons/\(nsid).jpg"
                         user.userPicUrl = userPicUrl
