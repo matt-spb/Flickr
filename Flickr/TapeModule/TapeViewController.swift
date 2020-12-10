@@ -69,8 +69,6 @@ extension TapeViewController: UITableViewDelegate, UITableViewDataSource {
             let photo = dataSource[indexPath.row]
             cell.configure(with: photo)
             cell.contentView.backgroundColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
-            print("debug: photoName \(photo.ownername), indexPath = \(indexPath.row), date = \(Date())")
-
             return cell
         }
     }
@@ -181,11 +179,13 @@ extension TapeViewController {
             switch result {
                 case .success(let person):
                     
-                    DispatchQueue.main.async { // излишне, убрать
-                        guard let nsid = person.nsid else { return }
-                        let userPicUrl = "http://farm\(person.iconfarm).staticflickr.com/\(person.iconserver)/buddyicons/\(nsid).jpg"
-                        user.userPicUrl = userPicUrl
-                }
+                    guard let nsid = person.nsid else { return }
+                    let userPicUrl = "http://farm\(person.iconfarm).staticflickr.com/\(person.iconserver)/buddyicons/\(nsid).jpg"
+                    user.userPicUrl = userPicUrl
+                    
+                    DispatchQueue.main.async {
+                        self.tableView.reloadData()
+                    }
                 
                 case .failure(let error):
                     print(error.rawValue)
@@ -194,7 +194,6 @@ extension TapeViewController {
     }
     
 
-    
     fileprivate func registerNibs() {
         let nib = UINib(nibName: "TapePhotoCell", bundle: nil)
         tableView.register(nib, forCellReuseIdentifier: TapePhotoCell.cellID)

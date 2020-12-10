@@ -48,6 +48,7 @@ class DetailPhotoVC: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         updateConstraintsForSize(containerView.bounds.size)
+        print("debug: viewDidLayoutSubviews size = \(containerView.bounds.size)")
         updateMinZoomScaleForSize(containerView.bounds.size)
     }
     
@@ -65,9 +66,9 @@ class DetailPhotoVC: UIViewController {
         self.nameLabel.text = photoModel.ownername
         
         if photoModel.intViews > 1000 {
-            viewsLabel.text = String(format: "%.1fK views" , Double(photoModel.intViews) / 1000)
+            viewsLabel.text = String(format: "%.1fK views", Double(photoModel.intViews) / 1000)
         } else {
-            viewsLabel.text = String(format: "%.0f views" , photoModel.intViews)
+            viewsLabel.text = String(format: "%.0f views", photoModel.intViews)
         }
     }
     
@@ -111,6 +112,7 @@ extension DetailPhotoVC {
     
     func updateConstraintsForSize(_ size: CGSize) {
         let yOffset = max(0, (size.height - photoImage.frame.height) / 2)
+        print("debug: size = \(size)")
         imageViewTopConstraint.constant = yOffset
         imageViewBottomConstraint.constant = yOffset
         
@@ -130,5 +132,6 @@ extension DetailPhotoVC: UIScrollViewDelegate {
     
     func scrollViewDidZoom(_ scrollView: UIScrollView) {
         updateConstraintsForSize(containerView.bounds.size)
+        print("debug: scrollViewDidZoom size = \(containerView.bounds.size)")
     }
 }
