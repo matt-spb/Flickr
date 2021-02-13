@@ -49,6 +49,9 @@ class DetailPhotoVC: UIViewController {
         super.viewDidLayoutSubviews()
         updateConstraintsForSize(containerView.bounds.size)
         print("debug: viewDidLayoutSubviews size = \(containerView.bounds.size)")
+        print("debug: innerScrollView size = \(innerScrollView.frame.size)")
+
+
         updateMinZoomScaleForSize(containerView.bounds.size)
     }
     
@@ -113,6 +116,10 @@ extension DetailPhotoVC {
     func updateConstraintsForSize(_ size: CGSize) {
         let yOffset = max(0, (size.height - photoImage.frame.height) / 2)
         print("debug: size = \(size)")
+//        print("debug: self size = \(self.view.frame.size)")
+//        print("debug: yOffset = \(yOffset)")
+
+
         imageViewTopConstraint.constant = yOffset
         imageViewBottomConstraint.constant = yOffset
         
